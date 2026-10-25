@@ -1,0 +1,50 @@
+# docker-compose.yml — Suivi de l'inventaire des VSAV
+#
+# Premier lancement (voir README) :
+#   cp .env.example .env && nano .env          # mot de passe admin, réseau NPM
+#   docker compose up -d --build
+#
+# Mise à jour :
+#   git pull && docker compose up -d --build
+#
+# Données sur le serveur (bind mount, facile à sauvegarder) :
+#   ./data/db/               base SQLite (inventaire, lots, personnes, journal)
+#   ./data/db/sauvegardes/   une sauvegarde automatique par jour, 30 gardées
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: suivi-inventaire-vsav
+    container_name: suivi-inventaire-vsav
+    restart: unless-stopped
+    # Nginx Proxy Manager joint l'app par le nom du conteneur
+    # (http://suivi-inventaire-vsav:8000) via le réseau Docker partagé.
+    # Le port n'est publié que sur 127.0.0.1 : jamais exposé directement à Internet.
+    ports:
+      - "127.0.0.1:${HOST_PORT:-8010}:8000"
+    env_file:
+      - ./.env
+    environment:
+      - TZ=Europe/Paris
+      - DB_PATH=/app/db/inventaire.db
+    volumes:
+      - ./data/db:/app/db
+    # bot WhatsApp sur la même machine : joignable par http://host.docker.internal:3000
+    # (à régler dans Gestion → Alertes WhatsApp)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - proxy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/sante')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  proxy:
+    # réseau Docker de Nginx Proxy Manager, créé en dehors de ce projet
+    external: true
+    name: ${PROXY_NETWORK:-proxy}

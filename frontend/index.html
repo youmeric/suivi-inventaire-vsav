@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Inventaire VSAV</title>
+  <meta name="description" content="Suivi de l'inventaire et des péremptions des VSAV">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Inventaire">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/favicon-64.png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="/css/style.css?v=__V__">
+</head>
+<body>
+
+<!-- ============ connexion ============ -->
+<div class="login-wrap" id="login-view" hidden>
+  <form class="card login" id="login-form" autocomplete="off">
+    <img class="logo" src="/icons/icon-192.png" alt="">
+    <div>
+      <h1>Inventaire VSAV</h1>
+      <p class="muted">Saisissez votre code personnel (8 caractères), reçu par WhatsApp.</p>
+    </div>
+    <input id="login-code" inputmode="text" autocapitalize="characters" placeholder="XXXX-XXXX" aria-label="Code personnel" maxlength="9">
+    <div id="login-admin" hidden>
+      <input type="password" id="login-password" placeholder="Mot de passe administrateur" aria-label="Mot de passe administrateur">
+    </div>
+    <div class="error" id="login-error" hidden></div>
+    <button class="btn primary" type="submit">Se connecter</button>
+    <button class="btn ghost small" type="button" id="login-toggle">Connexion administrateur</button>
+  </form>
+</div>
+
+<!-- ============ application ============ -->
+<div id="app-view" hidden>
+  <header class="top">
+    <div class="brand">
+      <img src="/icons/icon-192.png" alt="">
+      <div>
+        <h1>Inventaire VSAV</h1>
+        <div class="sub" id="who"></div>
+      </div>
+    </div>
+    <select id="vehicule-select" aria-label="Véhicule"></select>
+    <button class="btn ghost small" id="logout" type="button" title="Se déconnecter" aria-label="Se déconnecter">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+    </button>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button type="button" data-view="tableau" aria-current="page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 12 3l9 9"/><path d="M5 10v10h14V10"/></svg>
+      <span>Accueil</span><span class="badge" id="badge-alertes" hidden></span>
+    </button>
+    <button type="button" data-view="inventaire">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M12 11v5M9.5 13.5h5"/></svg>
+      <span>Inventaire</span>
+    </button>
+    <button type="button" data-view="verification">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>
+      <span>Vérification</span>
+    </button>
+    <button type="button" data-view="commande">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>
+      <span>À commander</span>
+    </button>
+    <button type="button" data-view="gestion" id="tab-gestion" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      <span>Gestion</span>
+    </button>
+  </nav>
+
+  <main>
+    <section id="v-tableau" data-view-panel="tableau"></section>
+    <section id="v-inventaire" data-view-panel="inventaire" hidden></section>
+    <section id="v-verification" data-view-panel="verification" hidden></section>
+    <section id="v-commande" data-view-panel="commande" hidden></section>
+    <section id="v-gestion" data-view-panel="gestion" hidden></section>
+  </main>
+
+  <button class="btn primary fab" id="fab-scan" type="button" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h2v2H7zM11 8h2M15 8h2v2M7 12h4v4M13 12h4v4h-4zM7 16h2"/></svg>
+    Scanner une boîte
+  </button>
+</div>
+
+<!-- ============ fenêtres ============ -->
+<dialog id="dlg-scan">
+  <div class="dlg-body">
+    <div class="dlg-head">
+      <h2>Scanner le code de la boîte</h2>
+      <button class="btn ghost small" type="button" data-close>Fermer</button>
+    </div>
+    <p class="muted small" id="scan-hint">Visez le petit carré (DataMatrix) imprimé sur la boîte, près de la date de péremption.</p>
+    <div class="scan-video" id="scan-video-wrap"><video id="scan-video" playsinline muted></video><div class="frame"></div></div>
+    <div class="error" id="scan-error" hidden></div>
+    <div class="row">
+      <label class="btn small">
+        Prendre une photo à la place
+        <input type="file" accept="image/*" capture="environment" id="scan-photo" hidden>
+      </label>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="dlg-choix">
+  <form class="dlg-body" method="dialog" id="choix-form">
+    <div class="dlg-head">
+      <h2>Quel produit ?</h2>
+      <button class="btn ghost small" type="button" data-close>Annuler</button>
+    </div>
+    <p class="muted small" id="choix-info"></p>
+    <label class="field">Produit dans ce véhicule
+      <select id="choix-article" required></select>
+    </label>
+    <label class="check"><input type="checkbox" id="choix-memo" checked> Retenir ce code pour reconnaître ce produit la prochaine fois</label>
+    <button class="btn primary" type="submit">Continuer</button>
+  </form>
+</dialog>
+
+<dialog id="dlg-retrait">
+  <form class="dlg-body" method="dialog" id="retrait-form">
+    <div class="dlg-head">
+      <h2>Retirer ce lot</h2>
+      <button class="btn ghost small" type="button" data-close>Annuler</button>
+    </div>
+    <p id="retrait-info"></p>
+    <fieldset class="row" style="border:0;padding:0;margin:0">
+      <legend class="muted small" style="margin-bottom:6px">Pourquoi ?</legend>
+      <label class="check"><input type="radio" name="motif" value="perime" checked> Périmé</label>
+      <label class="check"><input type="radio" name="motif" value="utilise"> Utilisé en intervention</label>
+      <label class="check"><input type="radio" name="motif" value="erreur"> Erreur de saisie</label>
+      <label class="check"><input type="radio" name="motif" value="autre"> Autre</label>
+    </fieldset>
+    <button class="btn primary" type="submit">Retirer le lot</button>
+  </form>
+</dialog>
+
+<dialog id="dlg-article">
+  <form class="dlg-body" method="dialog" id="article-form">
+    <div class="dlg-head">
+      <h2 id="article-title">Article</h2>
+      <button class="btn ghost small" type="button" data-close>Annuler</button>
+    </div>
+    <label class="field">Emplacement (sac, pochette, tiroir)
+      <input id="af-section" list="af-sections" required maxlength="120">
+      <datalist id="af-sections"></datalist>
+    </label>
+    <label class="field">Désignation <input id="af-designation" required maxlength="200"></label>
+    <div class="form-grid">
+      <label class="field">Quantité prévue <input type="number" id="af-quantite" min="0" max="9999" required></label>
+      <label class="field">Catégorie
+        <select id="af-categorie"><option value="medicament">Médicament</option><option value="materiel">Matériel</option></select>
+      </label>
+    </div>
+    <label class="field">Observation <input id="af-observation" maxlength="500"></label>
+    <label class="check"><input type="checkbox" id="af-perissable"> Suivre la date de péremption</label>
+    <label class="field">Code de la boîte (GTIN), rempli au premier scan <input id="af-gtin" inputmode="numeric" maxlength="14"></label>
+    <div class="error" id="af-error" hidden></div>
+    <div class="row">
+      <button class="btn primary" type="submit">Enregistrer</button>
+      <span class="grow"></span>
+      <button class="btn danger" type="button" id="af-delete" hidden>Supprimer l'article</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlg-confirm">
+  <form class="dlg-body" method="dialog">
+    <h2 id="confirm-title">Confirmer</h2>
+    <p id="confirm-text"></p>
+    <div class="row">
+      <button class="btn primary" value="ok" id="confirm-ok">Confirmer</button>
+      <button class="btn" value="cancel">Annuler</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="/js/gs1.js?v=__V__"></script>
+<script src="/js/app.js?v=__V__"></script>
+</body>
+</html>
